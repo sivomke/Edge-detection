@@ -53,11 +53,11 @@ def salt_and_pepper(image: np.ndarray, prob: float) -> np.ndarray:
     # determine which pixels will be changed
     random_matrix = np.random.random_sample((height, width))
     image[random_matrix < prob] = 0  # change corresponding pixels to black
-    image[random_matrix > threshold] = 255 # change corresponding pixels to white
+    image[random_matrix > threshold] = 255  # change corresponding pixels to white
     return image
 
 
-def median_filter(image: np.ndarray):
+def median_filter(image: np.ndarray) -> np.ndarray:
     width = image.shape[1]
     height = image.shape[0]
     result = np.zeros(shape=(height, width), dtype=np.uint8)
@@ -65,6 +65,10 @@ def median_filter(image: np.ndarray):
         for y in range(1, width - 3):
             result[x, y] = np.median(image[x - 1:x + 2, y - 1:y + 2])
     return result
+
+
+# def first_order_approx(image: np.ndarray) -> np.ndarray:
+
 
 
 
@@ -86,17 +90,22 @@ def main():
     result.save('sobel.png')
     result.show()
     """
-    distorted = greysc
-    distorted[:, :, 0] = salt_and_pepper(distorted[:, :, 0], 0.05)
-    distorted[:, :, 1] = distorted[:, :, 0]
-    distorted[:, :, 2] = distorted[:, :, 0]
-    Image.fromarray(distorted, 'RGB').show()
+    salt_pepper = greysc
+    salt_pepper[:, :, 0] = salt_and_pepper(salt_pepper[:, :, 0], 0.05)
+    salt_pepper[:, :, 1] = salt_pepper[:, :, 0]
+    salt_pepper[:, :, 2] = salt_pepper[:, :, 0]
+    result = Image.fromarray(salt_pepper, 'RGB')
+    result.save('salt_and_pepper.png')
+    result.show()
 
-    cured = np.zeros(shape=[height, width, 3], dtype=np.uint8)
-    cured[:, :, 0] = median_filter(distorted[:, :, 0])
-    cured[:, :, 1] = cured[:, :, 0]
-    cured[:, :, 2] = cured[:, :, 0]
-    Image.fromarray(cured, 'RGB').show()
+
+    median = np.zeros(shape=[height, width, 3], dtype=np.uint8)
+    median[:, :, 0] = median_filter(salt_pepper[:, :, 0])
+    median[:, :, 1] = median[:, :, 0]
+    median[:, :, 2] = median[:, :, 0]
+    result = Image.fromarray(median, 'RGB')
+    result.save('median_filter.png')
+    result.show()
 
 main()
 
