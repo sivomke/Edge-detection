@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import random
 
 
 def rgb_to_greyscale(image: np.ndarray):
@@ -45,16 +46,14 @@ def sobel(image: np.ndarray) -> np.ndarray:
 
 # adds salt and pepper noise to greyscaled image
 
-def salt_and_pepper(image: np.ndarray):
+def salt_and_pepper(image: np.ndarray, prob: float) -> np.ndarray:
     width = image.shape[1]
     height = image.shape[0]
+    threshold = 1 - prob
     # determine which pixels will be changed
-    final_num = 5  # the larger this number the fewer pixels will be changed
-    random_matrix = np.random.randint(final_num + 1, size=(height, width)) == final_num
-    change_to_black = random_matrix == 0
-    change_to_white = random_matrix == final_num
-    image[change_to_black] = 0
-    image[change_to_white] = 255
+    random_matrix = np.random.random_sample((height, width))
+    image[random_matrix < prob] = 0  # change corresponding pixels to black
+    image[random_matrix > threshold] = 255 # change corresponding pixels to white
     return image
 
 
@@ -71,14 +70,14 @@ def median_filter(image: np.ndarray):
 
 def main():
     image = Image.open('puppy.jpg')
-    # image.show()
+    image.show()
     image_arr = np.array(image)
     height = image_arr.shape[0]
     width = image_arr.shape[1]
     # red, green, blue channels
     r, g, b = image_arr[:, :, 0], image_arr[:, :, 1], image_arr[:, :, 2]
     greysc = rgb_to_greyscale(image_arr)
-
+    """
     sobel_result = np.zeros(shape=[height, width, 3], dtype=np.uint8)
     sobel_result[:, :, 0] = sobel(image_arr[:, :, 0])
     sobel_result[:, :, 1] = sobel_result[:, :, 0]
@@ -86,33 +85,19 @@ def main():
     result = Image.fromarray(sobel_result, 'RGB')
     result.save('sobel.png')
     result.show()
+    """
+    distorted = greysc
+    distorted[:, :, 0] = salt_and_pepper(distorted[:, :, 0], 0.05)
+    distorted[:, :, 1] = distorted[:, :, 0]
+    distorted[:, :, 2] = distorted[:, :, 0]
+    Image.fromarray(distorted, 'RGB').show()
+
+    cured = np.zeros(shape=[height, width, 3], dtype=np.uint8)
+    cured[:, :, 0] = median_filter(distorted[:, :, 0])
+    cured[:, :, 1] = cured[:, :, 0]
+    cured[:, :, 2] = cured[:, :, 0]
+    Image.fromarray(cured, 'RGB').show()
+
+main()
 
 
-    sobel_result = np.zeros(shape=[height, width, 3], dtype=np.uint8)
-    sobel_result[:, :, 0] = sobel(image_arr[:, :, 0])
-    sobel_result[:, :, 1] = sobel_result[:, :, 0]
-    sobel_result[:, :, 2] = sobel_result[:, :, 0]
-    result = Image.fromarray(sobel_result, 'RGB')
-    result.save('sobel.png')
-    result.show()
-
-image = Image.open('puppy.jpg')
-# image.show()
-image_arr = np.array(image)
-height = image_arr.shape[0]
-width = image_arr.shape[1]
-# red, green, blue channels
-r, g, b = image_arr[:, :, 0], image_arr[:, :, 1], image_arr[:, :, 2]
-greysc = rgb_to_greyscale(image_arr)
-
-distorted = greysc
-distorted[:, :, 0] = salt_and_pepper(distorted[:, :, 0])
-distorted[:, :, 1] = distorted[:, :, 0]
-distorted[:, :, 2] = distorted[:, :, 0]
-Image.fromarray(distorted, 'RGB').show()
-
-cured = np.zeros(shape = [height, width, 3], dtype=np.uint8)
-cured[:, :, 0] = median_filter(greysc[:, :, 0])
-cured[:, :, 1] = cured[:, :, 0]
-cured[:, :, 2] = cured[:, :, 0]
-Image.fromarray(cured, 'RGB').show()
