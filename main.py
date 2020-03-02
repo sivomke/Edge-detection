@@ -37,7 +37,7 @@ def sobel(image: np.ndarray) -> np.ndarray:
     for x in range(1, height-3):
         for y in range(1, width-3):
             # print("x: {}, y: {}".format(x, y))
-            g_x = np.sum(horizontal_mask*image[x-1:x+2, y-1:y+2])
+            g_x = np.sum(horizontal_mask*image[x-1,1:x+2, y-1:y+2])
             g_y = np.sum(vertical_mask*image[x-1:x+2, y-1:y+2])
             grad = np.sqrt(g_x**2+g_y**2)
             result[x, y] = grad
@@ -67,7 +67,24 @@ def median_filter(image: np.ndarray) -> np.ndarray:
     return result
 
 
-# def first_order_approx(image: np.ndarray) -> np.ndarray:
+def first_order_approx(image: np.ndarray) -> np.ndarray:
+    """
+    first order intensity approximation  f(i, j)= a*i + b*j + c
+    :param image: color intensity
+    :return: gradient of first order approximation
+    """
+    height = image.shape[0]
+    width = image.shape[1]
+    result = np.zeros(shape=(height, width), dtype=np.uint8)
+    a_mask = np.array([[-1, -1], [1, 1]])
+    b_mask = np.array([[-1, 1], [-1, 1]])
+    for i in range(1, height):
+        for j in range(1, width):
+            a = .5*np.sum(a_mask*image[i-1:i+1, j-1:j+1])
+            b = .5*np.sum(b_mask * image[i - 1:i + 1, j - 1:j + 1])
+            result[i,j] = np.sqrt(a**2+b**2)
+    return result
+
 
 
 
@@ -76,11 +93,12 @@ def main():
     image = Image.open('puppy.jpg')
     image.show()
     image_arr = np.array(image)
-    height = image_arr.shape[0]
-    width = image_arr.shape[1]
     # red, green, blue channels
     r, g, b = image_arr[:, :, 0], image_arr[:, :, 1], image_arr[:, :, 2]
     greysc = rgb_to_greyscale(image_arr)
+
+
+
     """
     sobel_result = np.zeros(shape=[height, width, 3], dtype=np.uint8)
     sobel_result[:, :, 0] = sobel(image_arr[:, :, 0])
@@ -90,6 +108,19 @@ def main():
     result.save('sobel.png')
     result.show()
     """
+
+    """
+    first_order = greysc
+    first_order[:, :, 0] = first_order_approx(first_order[:, :, 0])
+    first_order[:, :, 1] = first_order[:, :, 0]
+    first_order[:, :, 2] = first_order[:, :, 0]
+    result = Image.fromarray(first_order, 'RGB')
+    result.save('first_order.png')
+    result.show()
+    """
+
+
+    """
     salt_pepper = greysc
     salt_pepper[:, :, 0] = salt_and_pepper(salt_pepper[:, :, 0], 0.05)
     salt_pepper[:, :, 1] = salt_pepper[:, :, 0]
@@ -97,8 +128,9 @@ def main():
     result = Image.fromarray(salt_pepper, 'RGB')
     result.save('salt_and_pepper.png')
     result.show()
+    """
 
-
+    """
     median = np.zeros(shape=[height, width, 3], dtype=np.uint8)
     median[:, :, 0] = median_filter(salt_pepper[:, :, 0])
     median[:, :, 1] = median[:, :, 0]
@@ -106,6 +138,7 @@ def main():
     result = Image.fromarray(median, 'RGB')
     result.save('median_filter.png')
     result.show()
+    """
 
 main()
 
